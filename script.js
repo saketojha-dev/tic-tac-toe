@@ -1,7 +1,22 @@
 const cells = document.querySelectorAll(".game-board button");
 
+const status = document.querySelector(".status");
+
+const xScore = document.querySelector("#x-score");
+const oScore = document.querySelector("#o-score");
+const drawScore = document.querySelector("#draw-score");
+
+const resetButton = document.querySelector(".reset-button");
+const resetScoreButton = document.querySelector(".reset-score-button");
+
 let currentPlayer = "X";
 let gameActive = true;
+
+let scores = JSON.parse(localStorage.getItem("ticTacToeScores")) || {
+    X: 0,
+    O: 0,
+    draws: 0
+};
 
 const winningCombinations = [
     [0, 1, 2],
@@ -14,24 +29,8 @@ const winningCombinations = [
     [2, 4, 6]
 ];
 
-// Status
-const status = document.createElement("h2");
-status.className = "status";
-status.textContent = "Player X's Turn";
+updateScore();
 
-document.body.insertBefore(
-    status,
-    document.querySelector(".game-board")
-);
-
-// Reset button
-const resetButton = document.createElement("button");
-resetButton.className = "reset-button";
-resetButton.textContent = "Reset Game";
-
-document.body.appendChild(resetButton);
-
-// Cell click
 cells.forEach((cell) => {
     cell.addEventListener("click", handleCellClick);
 });
@@ -63,6 +62,10 @@ function checkWinner() {
                 cells[index].classList.add("winner");
             });
 
+            scores[currentPlayer]++;
+            saveScore();
+            updateScore();
+
             status.textContent = `Player ${currentPlayer} Wins! 🏆`;
             gameActive = false;
 
@@ -75,8 +78,13 @@ function checkWinner() {
     );
 
     if (boardFull) {
+        scores.draws++;
+        saveScore();
+        updateScore();
+
         status.textContent = "It's a Draw! 🤝";
         gameActive = false;
+
         return;
     }
 
@@ -85,7 +93,19 @@ function checkWinner() {
     status.textContent = `Player ${currentPlayer}'s Turn`;
 }
 
-// Reset game
+function updateScore() {
+    xScore.textContent = scores.X;
+    oScore.textContent = scores.O;
+    drawScore.textContent = scores.draws;
+}
+
+function saveScore() {
+    localStorage.setItem(
+        "ticTacToeScores",
+        JSON.stringify(scores)
+    );
+}
+
 resetButton.addEventListener("click", resetGame);
 
 function resetGame() {
@@ -98,4 +118,19 @@ function resetGame() {
     gameActive = true;
 
     status.textContent = "Player X's Turn";
+}
+
+resetScoreButton.addEventListener("click", resetScores);
+
+function resetScores() {
+    scores = {
+        X: 0,
+        O: 0,
+        draws: 0
+    };
+
+    saveScore();
+    updateScore();
+
+    resetGame();
 }
